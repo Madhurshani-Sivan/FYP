@@ -35,30 +35,9 @@ def get_all_universities():
 def get_all_courses():
     return get_all_courses_collection()
 
-@router.get('/eligible_courses')
-def get_eligible_courses():
-    student = {
-        "stream":"Commerce",
-        "ol": {
-            "English":"A",
-            "Maths":"A",
-            "Science":"A"
-        },
-        "al": [
-            {
-                "sub": "Economics",
-                "results":"A"
-            },
-            {
-                "sub": "Accounting",
-                "results":"A"
-            },
-            {
-                "sub": "ICT",
-                "results":"A"
-            }
-        ]
-    }
+@router.post('/eligible_courses')
+def get_eligible_courses(student: dict):
+    
     courses = get_eligible_courses_collection(student)
 
     sub1 = student.get("al")[0].get("sub")
@@ -99,10 +78,5 @@ def get_eligible_courses():
 
     return eligible_courses.to_dict(orient='records')
 
-    #df_courses = pd.DataFrame(results_after_TZ_TO_OT)
-    #df_courses.drop('_id', inplace=True, axis=1)
-    #df_courses.drop('al', inplace=True, axis=1)
-    #df_courses.drop('30-21', inplace=True, axis=1, errors='ignore')
-    #df_courses.drop('21-12', inplace=True, axis=1, errors='ignore')
     
-
+    
