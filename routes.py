@@ -4,7 +4,8 @@ from fastapi import APIRouter
 from db import get_courselist_collection, get_uni_location_collection, get_all_courses_collection, get_eligible_courses_collection
 import pandas as pd
 from functions import al, ThreeZero_TwoOne, TwoOne_OneTwo, ThreeZero_TwoOne_OneTwo
-
+from location import order_universities
+import re
 
 router = APIRouter()
 
@@ -37,6 +38,14 @@ def get_all_courses():
 
 @router.post('/eligible_courses')
 def get_eligible_courses(student: dict):
+    courses = get_eligible_courses_as_list(student)
+
+    eligible_courses = get_proper_list(courses).sort_values("code")
+
+    return eligible_courses.to_dict(orient='records')
+
+
+def get_eligible_courses_as_list(student):
     
     courses = get_eligible_courses_collection(student)
 
@@ -52,6 +61,9 @@ def get_eligible_courses(student: dict):
     results_after_TO_OT = json.loads(TwoOne_OneTwo(results_after_TZ_TO, subs))
     results_after_TZ_TO_OT = json.loads(ThreeZero_TwoOne_OneTwo(results_after_TO_OT, subs))
 
+    return results_after_TZ_TO_OT
+
+def get_proper_list(courses):
     universities_collection = get_uni_location_collection()
     universities = universities_collection.find({}, {'code': 1, 'name': 1})
     universities = pd.DataFrame(universities)
@@ -59,7 +71,7 @@ def get_eligible_courses(student: dict):
 
     combined_dataframes = []
 
-    eligible_courses = pd.DataFrame(results_after_TZ_TO_OT)
+    eligible_courses = pd.DataFrame(courses)
 
     for _, row in eligible_courses.iterrows():
         code = str(row['code'])
@@ -70,13 +82,37 @@ def get_eligible_courses(student: dict):
         combined_dataframes.append(df)
 
     eligible_courses = pd.concat(combined_dataframes, ignore_index=True)
-    eligible_courses = eligible_courses.sort_values('code').drop_duplicates(subset=['code']).reset_index(drop=True)
+    eligible_courses = eligible_courses.drop_duplicates(subset=['code']).reset_index(drop=True)
 
     eligible_courses['code'] = eligible_courses['code'].astype(str)
     eligible_courses['course'] = eligible_courses['course'].astype(str)
     eligible_courses['university'] = eligible_courses['university'].astype(str)
 
-    return eligible_courses.to_dict(orient='records')
+    return eligible_courses
 
+@router.post("/after_location")
+def get_eligible_courses_after_location(location_preferences: dict, student: dict):
+    universities_collection = get_uni_location_collection()
+    ordered_universities = order_universities(location_preferences, universities_collection)
+
+    university_codes = [code for code in ordered_universities]
+
+    eligible_courses = get_eligible_courses_as_list(student)
     
+    eligible_courses_after_location = get_proper_list(eligible_courses)
+
+    df = pd.DataFrame(eligible_courses_after_location)
+
+    df['numeric_code'] = df['code'].str.extract('(\d+)').astype(int)
+
+    df['alpha_code'] = df['code'].str.extract('(\D+)')
+    df['alpha_code'] = df['alpha_code'].map(lambda x: university_codes.index(x))
+
+    df = df.sort_values(['numeric_code', 'alpha_code'])
+
+    df = df.drop(['numeric_code', 'alpha_code'], axis=1)
+
+    sorted_data = df.to_dict('records')
+    return sorted_data
+
     
