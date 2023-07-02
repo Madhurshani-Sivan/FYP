@@ -115,4 +115,34 @@ def get_eligible_courses_after_location(location_preferences: dict, student: dic
     sorted_data = df.to_dict('records')
     return sorted_data
 
+@router.post("/after_image")
+def get_eligible_courses_after_image(location_preferences: dict, student: dict, image:dict):
+    eligible_courses_after_image = get_eligible_courses_after_location(location_preferences,student)
+
+    image = image.get("image")
+
+    if image == True:
+        collection = get_uni_location_collection()
+        universities = collection.find({}, {'code': 1, 'image': 1})
+        all_universities = []
+        for university in universities:
+            university['_id'] = str(university['_id'])  # Convert ObjectId to string
+            all_universities.append(university)
+        sorted_uni = sorted(all_universities, key=lambda x: x["image"], reverse=True)
+
+        sorted_codes = [item["code"] for item in sorted_uni]
+        df = pd.DataFrame(eligible_courses_after_image)
+
+        df['numeric_code'] = df['code'].str.extract('(\d+)').astype(int)
+
+        df['alpha_code'] = df['code'].str.extract('(\D+)')
+        df['alpha_code'] = df['alpha_code'].map(lambda x: sorted_codes.index(x))
+
+        df = df.sort_values(['numeric_code', 'alpha_code'])
+
+        df = df.drop(['numeric_code', 'alpha_code'], axis=1)
+
+        sorted_data = df.to_dict('records')
+        return sorted_data
     
+    return eligible_courses_after_image
