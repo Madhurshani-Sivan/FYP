@@ -4,7 +4,7 @@ from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut
 from geopy.exc import GeocoderServiceError
 
-def order_universities(student_preferences, universities_collection):
+def order_universities(student_preferences, universities_collection, weight):
     # Update proximity attribute based on student preferences
     update_proximity_attribute(student_preferences, universities_collection)
 
@@ -27,7 +27,7 @@ def order_universities(student_preferences, universities_collection):
         cost_score = cost * (5-cost_importance)
 
         # Calculate the total score for the university
-        total_score = proximity_score + cost_score
+        total_score = proximity_score + cost_score + weight
 
         # Append the university code, name, and total score to the university_scores list
         university_scores.append((university_code, university_name, total_score))

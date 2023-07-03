@@ -22,6 +22,13 @@ def get_uni_location_collection():
     collection = db.uni_location
     return collection
 
+def get_personalities():
+    uri = 'mongodb+srv://fyp:fyp123@courselist.i0n97yv.mongodb.net/?retryWrites=true&w=majority'
+    client = MongoClient(uri)
+    db = client.courselist
+    collection = db.personalities
+    return collection
+
 def get_all_courses_collection():
     courselist_collection = get_courselist_collection()
     universities_collection = get_uni_location_collection()

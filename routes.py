@@ -1,11 +1,12 @@
 import ast
 import json
 from fastapi import APIRouter
-from db import get_courselist_collection, get_uni_location_collection, get_all_courses_collection, get_eligible_courses_collection
+from db import get_courselist_collection, get_uni_location_collection, get_all_courses_collection, get_eligible_courses_collection, get_personalities
 import pandas as pd
 from functions import al, ThreeZero_TwoOne, TwoOne_OneTwo, ThreeZero_TwoOne_OneTwo
 from location import order_universities
 import re
+from final import add_field_col,extract_paths_for_personality
 
 router = APIRouter()
 
@@ -20,6 +21,15 @@ def get_all_courses():
 
     return all_courses
 
+def get_all_courses_with_field():
+    collection = get_courselist_collection()
+    courses = collection.find({}, {'code': 1, 'course': 1, 'uni': 1, 'field':1})
+    all_courses = []
+    for course in courses:
+        course['_id'] = str(course['_id'])  # Convert ObjectId to string
+        all_courses.append(course)
+
+    return all_courses
 
 @router.get('/universities')
 def get_all_universities():
@@ -31,6 +41,37 @@ def get_all_universities():
         all_universities.append(university)
 
     return all_universities
+
+def get_all_universities_with_image():
+    collection = get_uni_location_collection()
+    universities = collection.find({}, {'code': 1, 'name': 1, 'image':1})
+    all_universities = []
+    for university in universities:
+        university['_id'] = str(university['_id'])  # Convert ObjectId to string
+        all_universities.append(university)
+
+    return all_universities
+
+def get_all_universities_with_location():
+    collection = get_uni_location_collection()
+    universities = collection.find({}, {'code': 1, 'name': 1, 'city':1,'proximity':1,'cost':1})
+    all_universities = []
+    for university in universities:
+        university['_id'] = str(university['_id'])  # Convert ObjectId to string
+        all_universities.append(university)
+
+    return all_universities
+
+@router.get('/personalities')
+def get_all_personalities():
+    collection = get_personalities()
+    personalities = collection.find()
+    all_personalities = []
+    for personality in personalities:
+        personality['_id'] = str(personality['_id'])  # Convert ObjectId to string
+        all_personalities.append(personality)
+
+    return all_personalities
 
 @router.get('/all_courses')
 def get_all_courses():
@@ -145,3 +186,43 @@ def get_eligible_courses_after_image(location_preferences: dict, student: dict, 
         return sorted_data
     
     return eligible_courses_after_image
+
+@router.post("/final")
+def get_preference_list(student:dict, personality:dict, reputation:dict, location:dict):
+    eligible_courses = get_eligible_courses_as_list(student)
+
+    all_courses = get_all_courses_with_field()
+
+    eligible_courses_with_field = add_field_col(eligible_courses,all_courses)
+    
+    check_personality = personality.get("check")
+    if check_personality:
+        personalities = get_all_personalities()
+        mbti = personality.get("mbti")
+        paths = extract_paths_for_personality(personalities, mbti)
+        sorted_courses = sorted(eligible_courses_with_field, key=lambda x: paths.index(x["field"]))
+    else:
+        sorted_courses = eligible_courses_with_field
+
+    check_reputation = reputation.get("check")
+    if check_reputation:
+        universities = get_all_universities_with_image()
+        importance = reputation.get("importance")
+        for university in universities:
+            weight = university["image"] * importance
+            university["weight"] = weight
+        sorted_universities = sorted(universities, key=lambda x: x["weight"], reverse=True)
+        sorted_codes = [item["code"] for item in sorted_universities]
+        for course in sorted_courses:
+            course["uni"] = sorted(course["uni"], key=lambda x: sorted_codes.index(x))
+    
+    check_location = location.get("check")
+    if check_location:
+        universities = get_uni_location_collection()
+        ordered_universities = order_universities(location, universities, weight)
+        for course in sorted_courses:
+            course["uni"] = sorted(course["uni"], key=lambda x: ordered_universities.index(x))
+
+    sorted_courses = get_proper_list(sorted_courses)
+
+    return sorted_courses.to_dict('records')
