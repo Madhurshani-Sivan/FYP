@@ -55,7 +55,6 @@ def get_eligible_courses_as_list(student):
     subs=[sub1,sub2,sub3]
 
     courses = json.loads(courses)
-
     results_after_al = json.loads(al(courses, subs))
     results_after_TZ_TO = json.loads(ThreeZero_TwoOne(results_after_al, subs))
     results_after_TO_OT = json.loads(TwoOne_OneTwo(results_after_TZ_TO, subs))

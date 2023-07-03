@@ -46,7 +46,6 @@ def ThreeZero_TwoOne(courses, subs):
             if val['30-21'] is None:
                 res.append(val)  # Skip the processing if '30-21' is None
                 continue
-
             match1 = count_match(list(val['30-21'][0].keys()), subs)
             match2 = count_match(list(val['30-21'][1].keys()), subs)
             if match1 == 3 and match2 == 0:
@@ -57,7 +56,8 @@ def ThreeZero_TwoOne(courses, subs):
             res.append(val)
 
     res = pd.DataFrame(res)
-    res.drop('30-21', inplace=True, axis=1)
+    if '30-21' in res.columns:
+        res.drop('30-21', inplace=True, axis=1)    
     res = res.astype(object)
     res = res.applymap(lambda x: int(x) if isinstance(x, np.int64) else x)
     json_data = res.to_json(orient='records')
@@ -82,7 +82,8 @@ def TwoOne_OneTwo(courses, subs):
       res.append(val)
   
   res = pd.DataFrame(res)
-  res.drop('21-12', inplace=True, axis=1)
+  if '21-12' in res.columns:
+        res.drop('21-12', inplace=True, axis=1)  
   res = res.astype(object)
   res = res.applymap(lambda x: int(x) if isinstance(x, np.int64) else x)
   json_data = res.to_json(orient='records')
@@ -108,7 +109,8 @@ def ThreeZero_TwoOne_OneTwo(courses, subs):
       res.append(val)
   
   res = pd.DataFrame(res)
-  res.drop('30-21-12', inplace=True, axis=1)
+  if '30-21-12' in res.columns:
+        res.drop('30-21-12', inplace=True, axis=1)  
   res = res.astype(object)
   res = res.applymap(lambda x: int(x) if isinstance(x, np.int64) else x)
   json_data = res.to_json(orient='records')
