@@ -1,7 +1,7 @@
 import ast
 import json
 from fastapi import APIRouter
-from db import get_courselist_collection, get_uni_location_collection, get_all_courses_collection, get_eligible_courses_collection, get_personalities
+from db import get_courselist_collection, get_uni_location_collection, get_all_courses_collection, get_eligible_courses_collection, get_personalities,get_zscore_from_db
 import pandas as pd
 from functions import al, ThreeZero_TwoOne, TwoOne_OneTwo, ThreeZero_TwoOne_OneTwo
 from location import order_universities
@@ -226,3 +226,14 @@ def get_preference_list(student:dict, personality:dict, reputation:dict, locatio
     sorted_courses = get_proper_list(sorted_courses)
 
     return sorted_courses.to_dict('records')
+
+@router.post("/zscore")
+def get_zscore(data: dict):
+    course = data.get('course')
+    district = data.get("district")
+    zscore = get_zscore_from_db(course, district)
+    if zscore is None:
+        return {"error": "Invalid course or district"}
+    return {"zscore": zscore}
+    
+

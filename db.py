@@ -118,3 +118,27 @@ def get_eligible_courses_collection(student):
     json_data = results_after_ol.to_json(orient='records')
 
     return json_data
+
+def get_zscore_from_db(course: str, district: str) -> float:
+    # Connect to the MongoDB database
+    uri = 'mongodb+srv://fyp:fyp123@courselist.i0n97yv.mongodb.net/?retryWrites=true&w=majority'
+    client = MongoClient(uri)
+    db = client["courselist"]
+    collection = db["zscore_list_2021"]
+
+    # Retrieve the z-score from the database
+    query = {"COURSE": course, district: {"$ne": "NQC"}}
+    projection = {district: 1}
+    zscore_data = collection.find_one(query, projection)
+
+    if zscore_data is None:
+        return None
+
+    # Extract the z-score value
+    zscore = zscore_data.get(district)
+
+    if zscore is None:
+        return None
+
+    # Return the z-score as a float
+    return float(zscore)
