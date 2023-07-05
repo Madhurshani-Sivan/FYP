@@ -215,6 +215,8 @@ def get_preference_list(student:dict, personality:dict, reputation:dict, locatio
         sorted_codes = [item["code"] for item in sorted_universities]
         for course in sorted_courses:
             course["uni"] = sorted(course["uni"], key=lambda x: sorted_codes.index(x))
+    else:
+        weight = 0
     
     check_location = location.get("check")
     if check_location:
