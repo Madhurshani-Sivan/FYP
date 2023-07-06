@@ -207,7 +207,6 @@ def get_preference_list(student:dict, personality:dict, reputation:dict, locatio
         filtered_courses = [course for course in eligible_courses_with_field if course["field"] in filtered_paths]
 
         sorted_courses = sorted(filtered_courses,key=lambda x: filtered_paths.index(x["field"]))
-
     else:
         sorted_courses = eligible_courses_with_field
 
