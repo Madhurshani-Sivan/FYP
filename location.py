@@ -9,8 +9,8 @@ def order_universities(student_preferences, universities_collection, weight):
     update_proximity_attribute(student_preferences, universities_collection)
 
     # Get importance ratings from student preferences
-    proximity_importance = student_preferences.get('proximity_importance', 1)
-    cost_importance = student_preferences.get('cost_importance', 1)
+    proximity_importance = int(student_preferences.get('proximity_importance', 1))
+    cost_importance = int(student_preferences.get('cost_importance', 1))
 
     # Initialize an empty list to store universities with their scores
     university_scores = []
