@@ -200,7 +200,11 @@ def get_preference_list(student:dict, personality:dict, reputation:dict, locatio
         personalities = get_all_personalities()
         mbti = personality.get("mbti")
         paths = extract_paths_for_personality(personalities, mbti)
-        sorted_courses = sorted(eligible_courses_with_field, key=lambda x: paths.index(x["field"]))
+        first_15_paths = paths[:15]
+
+        filtered_courses = [course for course in eligible_courses_with_field if course["field"] in first_15_paths]
+
+        sorted_courses = sorted(filtered_courses,key=lambda x: first_15_paths.index(x["field"]))
     else:
         sorted_courses = eligible_courses_with_field
 
