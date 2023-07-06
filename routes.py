@@ -236,12 +236,20 @@ def get_preference_list(student:dict, personality:dict, reputation:dict, locatio
     return sorted_courses.to_dict('records')
 
 @router.post("/zscore")
-def get_zscore(data: dict):
-    course = data.get('course')
-    district = data.get("district")
-    zscore = get_zscore_from_db(course, district)
-    if zscore is None:
-        return {"error": "Invalid course or district"}
-    return {"zscore": zscore}
-    
+def get_zscore(input: dict):
+    output = []
+    district = input.get('district')
+    data = input.get('data')
+    for item in data:
+        course = item.get("course")
+        university = item.get("university")
+        if course and university:
+            zscore = get_zscore_from_db(course, university, district)
+            if zscore is not None:
+                item["zscore"] = zscore
+            else:
+                item["error"] = "Invalid course or district"
+        output.append(item)
+    return output
+
 
