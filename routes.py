@@ -200,18 +200,20 @@ def get_preference_list(student:dict, personality:dict, reputation:dict, locatio
         personalities = get_all_personalities()
         mbti = personality.get("mbti")
         paths = extract_paths_for_personality(personalities, mbti)
-        first_15_paths = paths[:15]
+        importance = int(personality.get("importance"))
+        x = 25 // importance
+        filtered_paths = paths[:x]
 
-        filtered_courses = [course for course in eligible_courses_with_field if course["field"] in first_15_paths]
+        filtered_courses = [course for course in eligible_courses_with_field if course["field"] in filtered_paths]
 
-        sorted_courses = sorted(filtered_courses,key=lambda x: first_15_paths.index(x["field"]))
+        sorted_courses = sorted(filtered_courses,key=lambda x: filtered_paths.index(x["field"]))
     else:
         sorted_courses = eligible_courses_with_field
 
     check_reputation = reputation.get("check")
     if check_reputation:
         universities = get_all_universities_with_image()
-        importance = reputation.get("importance")
+        importance = int(reputation.get("importance"))
         for university in universities:
             weight = university["image"] * importance
             university["weight"] = weight
