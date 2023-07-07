@@ -241,7 +241,7 @@ def get_zscore(input: dict):
     district = input.get('district')
     data = input.get('data')
     for item in data:
-        course = item.get("course")
+        course = item.get("course").upper()
         university = item.get("university")
         if course and university:
             zscore = get_zscore_from_db(course, university, district)
