@@ -250,6 +250,8 @@ def get_zscore(input: dict):
             else:
                 item["error"] = "Invalid course or district"
         output.append(item)
+    output = sorted(output, key=lambda x: x.get("zscore", float('-inf')) or float('-inf'), reverse=True)
+
     return output
 
 
